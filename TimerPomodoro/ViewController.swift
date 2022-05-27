@@ -9,8 +9,10 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    var isWorkTime = true
-    var isStarted = false
+    static var isWorkTime = true
+    static var isStarted = true
+
+    static var color = UIColor.systemRed
 
     let pomodoroLabel: UILabel = {
         let label = UILabel()
@@ -24,16 +26,16 @@ class ViewController: UIViewController {
 
     let shapeView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "circle")?.withTintColor(#colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1) , renderingMode: .alwaysOriginal)
+        imageView.image = UIImage(systemName: "circle")?.withTintColor(color, renderingMode: .alwaysOriginal)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
 
     let timerLabel: UILabel = {
         let label = UILabel()
-        label.text = "05:00"
+        label.text = "25:00"
         label.font = UIFont.boldSystemFont(ofSize: 55)
-        label.textColor =  #colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1)
+        label.textColor = color
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -41,10 +43,16 @@ class ViewController: UIViewController {
 
     let timerButton: UIButton = {
         let button = UIButton()
-        button.setBackgroundImage(UIImage(systemName: "play")?.withTintColor(#colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1), renderingMode: .alwaysOriginal), for: .normal)
+        button.setBackgroundImage(UIImage(systemName: "play")?.withTintColor(color, renderingMode: .alwaysOriginal), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+
+    var timer = Timer()
+
+    var minutesDurationTimer = 25
+
+    var secondsDurationTimer = 0
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -52,6 +60,67 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
 
         setConstrains()
+
+        timerButton.addTarget(self, action: #selector(timerButtonTapped), for: .touchUpInside)
+
+    }
+
+    @objc func timerButtonTapped() {
+        if ViewController.isStarted {
+            timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(timerAction), userInfo: nil, repeats: true)
+            ViewController.isStarted = false
+            timerButton.setBackgroundImage(UIImage(systemName: "pause")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
+        } else {
+            timer.invalidate()
+            ViewController.isStarted = true
+            timerButton.setBackgroundImage(UIImage(systemName: "play")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
+        }
+    }
+
+    @objc func timerAction() {
+
+        if secondsDurationTimer == 0 {
+            secondsDurationTimer = 60
+            minutesDurationTimer -= 1
+        }
+
+        secondsDurationTimer -= 1
+        switch (minutesDurationTimer, secondsDurationTimer) {
+        case (10..., 10...):
+            timerLabel.text = "\(minutesDurationTimer):\(secondsDurationTimer)"
+        case (0...10, 10...):
+            timerLabel.text = "0\(minutesDurationTimer):\(secondsDurationTimer)"
+        case (10..., 0...10):
+            timerLabel.text = "\(minutesDurationTimer):0\(secondsDurationTimer)"
+        case (0...10, 0...10):
+            timerLabel.text = "0\(minutesDurationTimer):0\(secondsDurationTimer)"
+        default:
+            if ViewController.isWorkTime == true {
+                isRest()
+            } else {
+                isWork()
+            }
+        }
+    }
+
+    private func isRest() {
+        minutesDurationTimer = 5
+        secondsDurationTimer = 0
+        ViewController.color = UIColor.systemGreen
+        shapeView.image = UIImage(systemName: "circle")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal)
+        timerLabel.textColor = ViewController.color
+        timerButton.setBackgroundImage(UIImage(systemName: "pause")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
+        ViewController.isWorkTime = false
+    }
+
+    private func isWork() {
+        minutesDurationTimer = 25
+        secondsDurationTimer = 0
+        ViewController.color = UIColor.systemRed
+        shapeView.image = UIImage(systemName: "circle")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal)
+        timerLabel.textColor = ViewController.color
+        timerButton.setBackgroundImage(UIImage(systemName: "pause")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
+        ViewController.isWorkTime = true
     }
 }
 
@@ -79,7 +148,7 @@ extension ViewController {
             timerLabel.centerXAnchor.constraint(equalTo: shapeView.centerXAnchor)
         ])
 
-        shapeView.addSubview(timerButton)
+        view.addSubview(timerButton)
         NSLayoutConstraint.activate([
             timerButton.bottomAnchor.constraint(equalTo: shapeView.bottomAnchor, constant: -70),
             timerButton.centerXAnchor.constraint(equalTo: shapeView.centerXAnchor),
