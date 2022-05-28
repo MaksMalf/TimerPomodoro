@@ -26,7 +26,7 @@ class ViewController: UIViewController {
 
     let shapeView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "circle")?.withTintColor(color, renderingMode: .alwaysOriginal)
+        imageView.image = UIImage(systemName: "circle")?.withTintColor(.systemGray6, renderingMode: .alwaysOriginal)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -50,9 +50,17 @@ class ViewController: UIViewController {
 
     var timer = Timer()
 
+    let shapeLayer = CAShapeLayer()
+
     var minutesDurationTimer = 25
 
     var secondsDurationTimer = 0
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        animationTimer()
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -62,16 +70,18 @@ class ViewController: UIViewController {
         setConstrains()
 
         timerButton.addTarget(self, action: #selector(timerButtonTapped), for: .touchUpInside)
-
     }
 
     @objc func timerButtonTapped() {
+
         if ViewController.isStarted {
+            basicAnimation()
             timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(timerAction), userInfo: nil, repeats: true)
             ViewController.isStarted = false
             timerButton.setBackgroundImage(UIImage(systemName: "pause")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
         } else {
             timer.invalidate()
+            stopAnimation()
             ViewController.isStarted = true
             timerButton.setBackgroundImage(UIImage(systemName: "play")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
         }
@@ -103,24 +113,74 @@ class ViewController: UIViewController {
         }
     }
 
+    //MARK: Operating modes
+
     private func isRest() {
+
         minutesDurationTimer = 5
         secondsDurationTimer = 0
+
         ViewController.color = UIColor.systemGreen
-        shapeView.image = UIImage(systemName: "circle")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal)
+
         timerLabel.textColor = ViewController.color
+
         timerButton.setBackgroundImage(UIImage(systemName: "pause")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
         ViewController.isWorkTime = false
+
+        basicAnimation()
     }
 
-    private func isWork() {
+    func isWork() {
+
         minutesDurationTimer = 25
         secondsDurationTimer = 0
+
         ViewController.color = UIColor.systemRed
-        shapeView.image = UIImage(systemName: "circle")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal)
+
         timerLabel.textColor = ViewController.color
+
         timerButton.setBackgroundImage(UIImage(systemName: "pause")?.withTintColor(ViewController.color, renderingMode: .alwaysOriginal), for: .normal)
         ViewController.isWorkTime = true
+
+        basicAnimation()
+    }
+
+    //MARK: Animation
+
+    func animationTimer() {
+
+        let center = CGPoint(x: shapeView.frame.width / 2, y: shapeView.frame.height / 2)
+
+        let endAngel = -CGFloat.pi / 2
+        let startAngle = 2 * CGFloat.pi + endAngel
+
+        let circularPath = UIBezierPath(arcCenter: center, radius: 128, startAngle: startAngle, endAngle: endAngel, clockwise: false)
+
+        shapeLayer.path = circularPath.cgPath
+        shapeLayer.lineWidth = 25
+        shapeLayer.fillColor = UIColor.clear.cgColor
+        shapeLayer.lineCap = CAShapeLayerLineCap.round
+        shapeLayer.strokeColor =  ViewController.color.cgColor
+        shapeView.layer.addSublayer(shapeLayer)
+    }
+
+    func basicAnimation() {
+
+        let basicAnimation = CABasicAnimation(keyPath: "strokeEnd")
+
+        basicAnimation.toValue = 0
+        basicAnimation.duration = CFTimeInterval(minutesDurationTimer * 60 + secondsDurationTimer)
+        basicAnimation.fillMode = CAMediaTimingFillMode.forwards
+        basicAnimation.isRemovedOnCompletion = false
+        shapeLayer.add(basicAnimation, forKey: "basicAnimation")
+    }
+
+    func stopAnimation() {
+
+        if let strokeEnd = shapeLayer.presentation()?.strokeEnd {
+            shapeLayer.strokeEnd = strokeEnd
+            shapeLayer.removeAllAnimations()
+        }
     }
 }
 
