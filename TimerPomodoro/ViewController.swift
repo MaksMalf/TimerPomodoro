@@ -113,7 +113,7 @@ class ViewController: UIViewController {
         }
     }
 
-    //MARK: Operating modes
+    // MARK: - Operating modes
 
     private func isRest() {
 
@@ -188,18 +188,19 @@ extension ViewController {
 
     func setConstrains() {
 
-        view.addSubview(pomodoroLabel)
-        NSLayoutConstraint.activate([
-            pomodoroLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 120),
-            pomodoroLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
-        ])
-
         view.addSubview(shapeView)
         NSLayoutConstraint.activate([
             shapeView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             shapeView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             shapeView.heightAnchor.constraint(equalToConstant: 320),
             shapeView.widthAnchor.constraint(equalToConstant: 320)
+        ])
+
+        view.addSubview(pomodoroLabel)
+        NSLayoutConstraint.activate([
+            pomodoroLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 50),
+            pomodoroLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            pomodoroLabel.bottomAnchor.constraint(equalTo: shapeView.topAnchor, constant: -50)
         ])
 
         shapeView.addSubview(timerLabel)
